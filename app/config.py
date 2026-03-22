@@ -31,13 +31,13 @@ def load_settings() -> Settings:
     db_path = os.getenv("DB_PATH", str(root / "data" / "bot.db"))
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
 
-    token = os.getenv("BOT_TOKEN", "").strip()
+    token = os.getenv("BOT_TOKEN", "8417164599:AAFgQtmpdzlZHSAz1qVCJb2Ol22rJ7cxNEM").strip()
     if not token:
         raise RuntimeError("BOT_TOKEN is required.")
 
     return Settings(
         bot_token=token,
-        admin_ids=_parse_admin_ids(os.getenv("ADMIN_IDS", "")),
+        admin_ids=_parse_admin_ids(os.getenv("ADMIN_IDS", "7117775366")),
         webapp_base_url=os.getenv("WEBAPP_BASE_URL", "http://127.0.0.1:8000").rstrip("/"),
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "8000")),
