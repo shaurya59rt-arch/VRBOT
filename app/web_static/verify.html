@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #12324a;
+      --muted: #557087;
+      --accent: #1677ff;
+      --accent-dark: #0f5fd1;
+      --success: #0c8d57;
+      --border: rgba(18, 50, 74, 0.08);
+      --shadow: 0 20px 60px rgba(20, 55, 90, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(22, 119, 255, 0.15), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(100%, 420px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+      backdrop-filter: blur(10px);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(22, 119, 255, 0.08);
+      color: var(--accent-dark);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    h1 {
+      margin: 18px 0 10px;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+    p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+      box-shadow: 0 12px 30px rgba(22, 119, 255, 0.25);
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: .7; cursor: not-allowed; }
+    .status {
+      margin-top: 18px;
+      min-height: 24px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .success { color: var(--success); font-weight: 600; }
+    .error { color: #b42318; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Secure Access</div>
+    <h1>Account Verification</h1>
+    <p>Complete this quick verification step to unlock the earning dashboard inside the bot.</p>
+    <button id="verifyBtn">Verify</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const verifyBtn = document.getElementById("verifyBtn");
+    const statusEl = document.getElementById("status");
+
+    function setStatus(message, type = "") {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`.trim();
+    }
+
+    verifyBtn.addEventListener("click", async () => {
+      verifyBtn.disabled = true;
+      setStatus("Verification in progress...");
+
+      try {
+        const response = await fetch("/api/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ init_data: tg.initData })
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || "Verification failed.");
+        }
+
+        setStatus("Verification completed successfully.", "success");
+        tg.sendData(JSON.stringify({ type: "verified" }));
+        setTimeout(() => tg.close(), 1200);
+      } catch (error) {
+        setStatus(error.message || "Unable to complete verification.", "error");
+        verifyBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
